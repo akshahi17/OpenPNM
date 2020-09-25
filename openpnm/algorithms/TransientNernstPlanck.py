@@ -96,3 +96,14 @@ class TransientNernstPlanck(TransientReactiveTransport):
         if ('pore.bc_outflow' not in self.keys()) or (mode == 'overwrite'):
             self['pore.bc_outflow'] = np.nan
         self['pore.bc_outflow'][pores] = Qp[pores]
+
+    def _apply_BCs(self):
+        # Apply Dirichlet and rate BCs
+        TransientReactiveTransport._apply_BCs(self)
+        if 'pore.bc_outflow' not in self.keys():
+            return
+        # Apply outflow BC
+        diag = self.A.diagonal()
+        ind = np.isfinite(self['pore.bc_outflow'])
+        diag[ind] += self['pore.bc_outflow'][ind]
+        self.A.setdiag(diag)
