@@ -108,11 +108,32 @@ class NernstPlanckTest:
         y = np.around(self.adm['pore.concentration.ionX'], decimals=5)
         assert_allclose(actual=y, desired=x)
 
+    def test_outflow_BC(self):
+        mod = op.models.physics.ad_dif_mig_conductance.ad_dif_mig
+        self.phys.add_model(propname='throat.ad_dif_mig_conductance',
+                            model=mod, s_scheme='powerlaw', ion='ionX')
+        self.phys.regenerate_models()
+        adm = self.adm
+        adm.setup(conductance='throat.ad_dif_mig_conductance')
+        adm.remove_BC()
+        adm.set_value_BC(pores=self.net.pores('back'), values=1)
+        adm.set_outflow_BC(pores=self.net.pores('front'))
+        adm.set_value_BC(pores=self.net.pores('left'), values=0.1)
+        adm.set_value_BC(pores=self.net.pores('right'), values=0.1)
+        adm.run()
+        x = [0.06676, 0.36184, 0.05913,
+             0.1,     0.43529, 0.1,
+             0.1,     0.64825, 0.1,
+             0.1,     1.,      0.1]
+        y = np.around(self.adm['pore.concentration.ionX'], decimals=5)
+        assert_allclose(actual=y, desired=x)
+
     def test_unsupported_scheme_NernstPlanck(self):
         mod = op.models.physics.ad_dif_mig_conductance.ad_dif_mig
         with pytest.raises(Exception):
             self.phys.add_model(propname='throat.ad_dif_mig_conductance_exp',
-                                model=mod, s_scheme='unsupported_scheme', ion='ionX')
+                                model=mod, s_scheme='unsupported_scheme',
+                                ion='ionX')
 
     def test_ad_dif_mig_cond_w_Nt_by_2_dif_cond(self):
         gd = self.phase["throat.diffusive_conductance.ionX"]
@@ -131,9 +152,10 @@ class NernstPlanckTest:
         self.phys["throat.Nt_by_3.ionX"] = np.vstack((gd, gd, gd)).T
         mod = op.models.physics.ad_dif_mig_conductance.ad_dif_mig
         with pytest.raises(Exception):
-            self.phys.add_model(propname='throat.ad_dif_mig_conductance_Nt_by_2',
-                                model=mod, s_scheme='upwind', ion='ionX',
-                                throat_diffusive_conductance="throat.Nt_by_3")
+            self.phys.add_model(
+                propname='throat.ad_dif_mig_conductance_Nt_by_2',
+                model=mod, s_scheme='upwind', ion='ionX',
+                throat_diffusive_conductance="throat.Nt_by_3")
 
     def teardown_class(self):
         ws = op.Workspace()
