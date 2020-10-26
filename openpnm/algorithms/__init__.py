@@ -45,4 +45,8 @@ from .TransientNernstPlanckMultiphysicsSolver import (
     TransientNernstPlanckMultiphysicsSolver
 )
 
+from .CapacitiveDeionizationMultiphysicsSolver import (
+    CapacitiveDeionizationMultiphysicsSolver
+)
+
 from . import metrics
