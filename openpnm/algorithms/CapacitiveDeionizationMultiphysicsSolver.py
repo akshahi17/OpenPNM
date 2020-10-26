@@ -5,7 +5,7 @@ docstr = Docorator()
 logger = logging.getLogger(__name__)
 
 
-@docstr.get_sectionsf('TransientNernstPlanckMultiphysicsSolverSettings',
+@docstr.get_sectionsf('CapacitiveDeionizationMultiphysicsSolverSettings',
                       sections=['Parameters'])
 @docstr.dedent
 class CapacitiveDeionizationMultiphysicsSolverSettings(GenericSettings):
@@ -48,7 +48,7 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
     """
     def __init__(self, settings={}, **kwargs):
         super().__init__(**kwargs)
-        c = TransientNernstPlanckMultiphysicsSolverSettings()
+        c = CapacitiveDeionizationMultiphysicsSolverSettings()
         self.settings._update_settings_and_docs(c)
         self.settings.update(settings)
 
@@ -104,19 +104,16 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                 except KeyError:
                     alg.set_IC(0)
 
-        for e in e_alg:
+        for a in algs:
             # Save A matrix of the steady sys of eqs (WITHOUT BCs applied)
-            e._build_A()
-            e._A_steady = e._A.copy()
+            a._build_A()
+            a._A_steady = a._A.copy()
             # Initialize A and b with BCs applied
-            e._t_update_A()
-            e._t_update_b()
-            e._apply_BCs()
-            e._A_t = e._A.copy()
-            e._b_t = e._b.copy()
-        # Init A&b with BCs for charge conservation eq, independent of t_scheme
-        p_alg._build_A()
-        p_alg._apply_BCs()
+            a._t_update_A()
+            a._t_update_b()
+            a._apply_BCs()
+            a._A_t = a._A.copy()
+            a._b_t = a._b.copy()
 
         if t is None:
             t = self.settings['t_initial']
@@ -125,8 +122,8 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
             alg._update_iterative_props()
 
         # Setup algorithms transient settings
-        for e in e_alg:
-            e.setup(t_initial=self.settings['t_initial'],
+        for a in algs:
+            a.setup(t_initial=self.settings['t_initial'],
                     t_final=self.settings['t_final'],
                     t_step=self.settings['t_step'],
                     t_output=self.settings['t_output'],
@@ -240,7 +237,7 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                                 obj.regenerate_models()
                             g_old[p_alg.name] = (
                                 p_alg[p_alg.settings['quantity']].copy())
-                            p_alg._run_reactive(x0=g_old[p_alg.name])
+                            p_alg._t_run_reactive(x0=g_old[p_alg.name])
                             g_new[p_alg.name] = (
                                 p_alg[p_alg.settings['quantity']].copy()
                             )
@@ -274,22 +271,23 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                                 t_new[alg.name])
 
                     # Update A matrix of the steady sys of eqs (WITHOUT BCs)
-                    for e in e_alg:
+                    for a in algs:
                         # Update conductance first
                         physics = e.project.find_physics(phase=phase)
                         for ph in physics:
                             ph.regenerate_models()
                         # Update A matrix
-                        e._build_A()
-                        e._A_steady = e._A.copy()
+                        a._build_A()
+                        a._A_steady = a._A.copy()
 
                     # Update A and b and apply BCs
-                    for e in e_alg:
-                        e._t_update_A()
-                        e._t_update_b()
-                        e._apply_BCs()
-                        e._A_t = e._A.copy()
-                        e._b_t = e._b.copy()
+                    for a in algs:
+                        a._t_update_A()
+                        a._t_update_b()
+                        a._apply_BCs()
+                        a._A_t = a._A.copy()
+                        a._b_t = a._b.copy()
+                        a._apply_sources()  # apply_sources!!??
 
                 else:  # Stop time iterations if residual < t_tolerance
                     # Output steady state solution
