@@ -250,6 +250,9 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                                 obj.regenerate_models()
 
                         elif g_convergence:
+                            for obj in phys:
+                                obj[p_alg.settings['quantity']
+                                    + '_old'] = g_old[p_alg.name]
                             print('Solution for time step: ' + str(time)
                                   + ' s converged')
                             break
