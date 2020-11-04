@@ -250,9 +250,6 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                                 obj.regenerate_models()
 
                         elif g_convergence:
-                            for obj in phys:
-                                obj[p_alg.settings['quantity']
-                                    + '_old'] = g_old[p_alg.name]
                             print('Solution for time step: ' + str(time)
                                   + ' s converged')
                             break
@@ -290,7 +287,11 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
                         a._apply_BCs()
                         a._A_t = a._A.copy()
                         a._b_t = a._b.copy()
-                        a._apply_sources()  # apply_sources!!??
+
+                    # update pore.potential_old
+                    for obj in phys:
+                        obj[p_alg.settings['quantity']
+                            + '_old'] = g_old[p_alg.name]
 
                 else:  # Stop time iterations if residual < t_tolerance
                     # Output steady state solution
