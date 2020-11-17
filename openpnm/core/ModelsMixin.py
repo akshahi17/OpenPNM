@@ -67,16 +67,21 @@ class ModelsDict(PrintableDict):
         To visualize the dependencies, the following NetworkX function and
         settings is helpful:
 
-        nx.draw_spectral(
-            dtree,
-            arrowsize=50,
-            font_size=32,
-            with_labels=True,
-            node_size=2000,
-            width=3.0,
-            edge_color='lightgrey',
-            font_weight='bold'
-        )
+        >>> import openpnm as op
+        >>> net = op.network.Cubic(shape=[3, 3, 3])
+        >>> geo = op.geometry.StickAndBall(network=net,
+        ...                                pores=net.Ps,
+        ...                                throats=net.Ts)
+        >>> dtree = geo.models.dependency_graph()
+        >>> import networkx as nx
+        >>> nx.draw_spectral(dtree,
+        ...                  arrowsize=50,
+        ...                  font_size=32,
+        ...                  with_labels=True,
+        ...                  node_size=2000,
+        ...                  width=3.0,
+        ...                  edge_color='lightgrey',
+        ...                  font_weight='bold')
 
         """
         import networkx as nx
@@ -101,7 +106,7 @@ class ModelsDict(PrintableDict):
 
         return dtree
 
-    def dependency_map(self, ax=None, figsize=None):
+    def dependency_map(self, ax=None, figsize=None, deep=False, style='shell'):
         r"""
         Create a graph of the dependency graph in a decent format
 
@@ -122,7 +127,7 @@ class ModelsDict(PrintableDict):
         import networkx as nx
         import matplotlib.pyplot as plt
 
-        dtree = self.dependency_graph()
+        dtree = self.dependency_graph(deep=deep)
         labels = {}
         for node in dtree.nodes:
             if node.startswith("pore."):
@@ -133,16 +138,17 @@ class ModelsDict(PrintableDict):
 
         if ax is None:
             fig, ax = plt.subplots()
-        fig.set_size_inches(figsize)
+        if figsize is not None:
+            fig.set_size_inches(figsize)
 
-        nx.draw_shell(
-            dtree,
-            labels=labels,
-            with_labels=True,
-            edge_color='lightgrey',
-            font_size=12,
-            width=3.0,
-        )
+        style = style.replace('draw_', '')
+        method = getattr(nx, 'draw_' + style)
+        method(dtree,
+               labels=labels,
+               with_labels=True,
+               edge_color='lightgrey',
+               font_size=12,
+               width=3.0)
 
         ax = plt.gca()
         ax.margins(x=0.2, y=0.02)
@@ -385,8 +391,9 @@ class ModelsMixin:
         # Only regenerate model if regen_mode is correct
         if self.settings['freeze_models']:
             # Don't run ANY models if freeze_models is set to True
-            logger.warning(prop + ' was not run since freeze_models ' +
-                           'is set to True in object settings')
+            logger.warning(
+                f"{prop} was not run since freeze_models is set to True in obj. settings"
+            )
         elif regen_mode == 'constant':
             # Only regenerate if data not already in dictionary
             if prop not in self.keys():
