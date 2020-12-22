@@ -2,7 +2,7 @@ import openpnm as op
 ws = op.Workspace()
 ws.settings['loglevel'] = 30
 proj = ws.new_project()
-
+# passing the arguments
 net, geo, phase = op.materials.BundleOfTubes(shape=50, spacing=0.0001, length=0.001,
                                              psd_params={'distribution': 'weibull',
                                                          'loc': 0.000001,
