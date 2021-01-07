@@ -49,4 +49,8 @@ from .CapacitiveDeionizationMultiphysicsSolver import (
     CapacitiveDeionizationMultiphysicsSolver
 )
 
+from .DonnanMultiphysicsSolver import (
+    DonnanMultiphysicsSolver
+)
+
 from . import metrics

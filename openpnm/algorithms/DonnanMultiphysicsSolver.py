@@ -5,10 +5,10 @@ docstr = Docorator()
 logger = logging.getLogger(__name__)
 
 
-@docstr.get_sectionsf('CapacitiveDeionizationMultiphysicsSolverSettings',
+@docstr.get_sectionsf('DonnanMultiphysicsSolverSettings',
                       sections=['Parameters'])
 @docstr.dedent
-class CapacitiveDeionizationMultiphysicsSolverSettings(GenericSettings):
+class DonnanMultiphysicsSolverSettings(GenericSettings):
     r"""
     The Parameters section below describes the settings pertaining to the
     running of all transient classes which this algorithm orchestrates.
@@ -34,7 +34,7 @@ class CapacitiveDeionizationMultiphysicsSolverSettings(GenericSettings):
     t_scheme = 'implicit'
 
 
-class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
+class DonnanMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
     r"""
     A multiphysics solver to solve the Nernst-Planck and Ionic Conduction
     system *transiently*.
@@ -48,7 +48,7 @@ class CapacitiveDeionizationMultiphysicsSolver(NernstPlanckMultiphysicsSolver):
     """
     def __init__(self, settings={}, **kwargs):
         super().__init__(**kwargs)
-        c = CapacitiveDeionizationMultiphysicsSolverSettings()
+        c = DonnanMultiphysicsSolverSettings()
         self.settings._update_settings_and_docs(c)
         self.settings.update(settings)
 
